@@ -28,19 +28,22 @@
         "description": "should generate randomly otherwise",
         "schema": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "a": {
               "type": "string"
             },
             "b": {
               "type": "number"
+            },
+            "c": {
+              "type": "boolean"
             }
           },
           "required": [
             "a"
           ]
         },
-        "minProps": [1, 2],
         "valid": true
       }
     ]

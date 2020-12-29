@@ -45,6 +45,10 @@
   > .flx-a ~ .flx-ml { margin-left: @margin; }
 }
 
+.h-sm {
+  display: none;
+}
+
 @media screen and (min-width: 480px) {
   .sm-no-flx { display: block; }
   .sm-flx {
@@ -59,6 +63,10 @@
 }
 
 @media screen and (min-width: 720px) {
+  .h-sm {
+    display: block;
+  }
+
   .md-flx {
     display: flex;
 
@@ -183,13 +191,13 @@
 .os { overflow: scroll; }
 .oa { overflow: auto; }
 
-.clr:before,
-.clr:after {
+.clr::before,
+.clr::after {
   content: ' ';
   display: table
 }
 
-.clr:after { clear: both; }
+.clr::after { clear: both; }
 
 .fl { float: left; }
 .fr { float: right; }
@@ -252,6 +260,7 @@
 .b { border: 1px solid @border-color; }
 .b ~ .b { border-top: 0; }
 .nb { border: 0; }
+.nbk { background: transparent; }
 
 /* icons */
 .ic {
@@ -322,15 +331,46 @@
 }
 
 .f { box-shadow: 1px 1px 1px @shadow-color; }
-
-.num {
-  border: 1px solid @shadow-color;
-  width: 6em;
-}
+.txt, .num { border: 1px solid @shadow-color;  }
+.num { width: 6em; }
 
 /* misc */
 
 .cln {
   border: 0;
   border-top: 1px dotted @border-color;
+}
+
+.ar {
+  position: absolute;
+  right: @padding;
+}
+
+.bl {
+  color: @BLUE;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.zb {
+  > li + li {
+    border-top: 1px solid @SILVER;
+    padding-top: @padding;
+  }
+}
+
+.max {
+  max-height: 640px;
+  overflow: auto;
+}
+
+.overlay {
+  z-index: 2;
+}
+
+.invalid {
+  border-bottom: 1px dashed @RED;
 }

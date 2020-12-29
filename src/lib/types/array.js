@@ -61,25 +61,28 @@ function arrayType(value, path, resolve, traverseCallback) {
   let minItems = value.minItems;
   let maxItems = value.maxItems;
 
-  if (optionAPI('minItems')) {
+  const defaultMinItems = optionAPI('minItems');
+  const defaultMaxItems = optionAPI('maxItems');
+
+  if (defaultMinItems) {
     // fix boundaries
-    minItems = !maxItems
-      ? optionAPI('minItems')
-      : Math.min(optionAPI('minItems'), maxItems);
+    minItems = typeof minItems === 'undefined'
+      ? defaultMinItems
+      : Math.min(defaultMinItems, minItems);
   }
 
-  if (optionAPI('maxItems')) {
-    maxItems = !minItems
-      ? optionAPI('maxItems')
-      : Math.min(optionAPI('maxItems'), minItems);
+  if (defaultMaxItems) {
+    maxItems = typeof maxItems === 'undefined'
+      ? defaultMaxItems
+      : Math.min(defaultMaxItems, maxItems);
 
     // Don't allow user to set max items above our maximum
-    if (maxItems && maxItems > optionAPI('maxItems')) {
-      maxItems = optionAPI('maxItems');
+    if (maxItems && maxItems > defaultMaxItems) {
+      maxItems = defaultMaxItems;
     }
 
     // Don't allow user to set min items above our maximum
-    if (minItems && minItems > optionAPI('maxItems')) {
+    if (minItems && minItems > defaultMaxItems) {
       minItems = maxItems;
     }
   }
@@ -89,7 +92,7 @@ function arrayType(value, path, resolve, traverseCallback) {
 
   let length = random.number(minItems, maxItems, 1, 5);
 
-  if (optionalsProbability !== false) {
+  if (optionalsProbability !== null) {
     length = Math.max(fixedProbabilities
       ? Math.round((maxItems || length) * optionalsProbability)
       : Math.abs(random.number(minItems, maxItems) * optionalsProbability), minItems || 0);

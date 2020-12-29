@@ -1,10 +1,9 @@
+import path from 'path';
 import {
   jsf, pick, tryTest, getTests,
 } from './helpers';
 
 const { only, all } = getTests(__dirname);
-
-/* global describe, it */
 
 const seeds = [];
 
@@ -15,12 +14,20 @@ function seed() {
 }
 
 (only.length ? only : all).forEach(suite => {
-  describe(`${suite.description} (${suite.file.replace(`${process.cwd()}/`, '')})`, () => {
+  const normalizedFilename = path.normalize(suite.file);
+  const relativeFilename = normalizedFilename.replace(`${process.cwd()}${path.sep}`, '');
+
+  describe(`${suite.description} (${relativeFilename})`, () => {
     suite.tests.forEach(test => {
       if (!process.env.CI && test.online) return;
       if (process.argv.includes('--skip')) {
         if (!test.skip) return;
         delete test.skip;
+      }
+
+      if (test.skip) {
+        it.skip(test.description);
+        return;
       }
 
       it(test.description, () => {
@@ -54,31 +61,19 @@ function seed() {
 
         // support for "exhaustive" testing, increase or set in .json spec
         // for detecting more bugs quickly by executing the same test N-times
-        const max = test.repeat || (process.CI ? 250 : 50);
+        const max = process.CI ? 250 : (test.repeat || 1);
 
         let nth = max;
 
         const tasks = [];
 
-        // count prescence of props...
-        const props = test.minProps ? test.minProps.reduce((prev, cur) => {
-          prev[String(cur)] = 0;
-          return prev;
-        }, {}) : null;
+        if (test.throwsSometimes) {
+          test.throwCount = 0;
+        }
 
         while (nth) {
           if (!test.skip) {
-            tasks.push(tryTest(nth, max, test, refs, schema, sample => {
-              if (props) {
-                const length = String(Object.keys(sample).length);
-
-                if (typeof props[length] === 'undefined') {
-                  throw new Error(`Unexpected length(${length}), given '${test.minProps.join(', ')}'`);
-                }
-
-                props[length] += 1;
-              }
-            }));
+            tasks.push(tryTest(max - nth + 1, max, test, refs, schema));
           }
 
           nth -= 1;
@@ -95,8 +90,8 @@ function seed() {
           console.log('---> Used seeds:', seeds.slice(-10).join(', ') || test.seed);
           throw e;
         }).then(() => {
-          if (props && Object.values(props).some(x => x === 0)) {
-            throw new Error(`minProps failed, got: ${JSON.stringify(props)}`);
+          if (test.throwsSometimes && !(test.throwCount > 0)) {
+            throw new Error('Expected some tests to throw');
           }
         });
       }).timeout(suite.timeout || test.timeout || (process.CI ? 30000 : 10000));

@@ -49,17 +49,19 @@ function objectType(value, path, resolve, traverseCallback) {
   const optionalsProbability = optionAPI('alwaysFakeOptionals') === true ? 1.0 : optionAPI('optionalsProbability');
   const fixedProbabilities = optionAPI('alwaysFakeOptionals') || optionAPI('fixedProbabilities') || false;
   const ignoreProperties = optionAPI('ignoreProperties') || [];
+  const reuseProps = optionAPI('reuseProperties');
+  const fillProps = optionAPI('fillProperties');
 
-  const min = Math.max(value.minProperties || 0, requiredProperties.length);
   const max = value.maxProperties || (allProperties.length + (allowsAdditional ? random.number(1, 5) : 0));
 
+  let min = Math.max(value.minProperties || 0, requiredProperties.length);
   let neededExtras = Math.max(0, allProperties.length - min);
 
   if (allProperties.length === 1 && !requiredProperties.length) {
-    neededExtras = random.number(neededExtras, allProperties.length + (allProperties.length - min));
+    min = Math.max(random.number(fillProps ? 1 : 0, max), min);
   }
 
-  if (optionalsProbability !== false) {
+  if (optionalsProbability !== null) {
     if (fixedProbabilities === true) {
       neededExtras = Math.round((min - requiredProperties.length) + (optionalsProbability * (allProperties.length - min)));
     } else {
@@ -73,8 +75,8 @@ function objectType(value, path, resolve, traverseCallback) {
   });
 
   // properties are read from right-to-left
-  const _limit = optionalsProbability !== false ? max : random.number(0, max);
-  const _props = requiredProperties.concat(extraProperties.slice(0, _limit));
+  const _limit = optionalsProbability !== null ? max : random.number(0, max);
+  const _props = requiredProperties.concat(random.shuffle(extraProperties).slice(0, _limit));
   const _defns = [];
 
   if (value.dependencies) {
@@ -158,9 +160,6 @@ function objectType(value, path, resolve, traverseCallback) {
     }
   });
 
-  const fillProps = optionAPI('fillProperties');
-  const reuseProps = optionAPI('reuseProperties');
-
   // discard already ignored props if they're not required to be filled...
   let current = Object.keys(props).length + (fillProps ? 0 : skipped.length);
 
@@ -178,17 +177,22 @@ function objectType(value, path, resolve, traverseCallback) {
     return one;
   }
 
+  let minProps = min;
+  if (allowsAdditional && !requiredProperties.length) {
+    minProps = Math.max(optionalsProbability === null || additionalProperties ? random.number(fillProps ? 1 : 0, max) : 0, min);
+  }
+
   while (fillProps) {
     if (!(patternPropertyKeys.length || allowsAdditional)) {
       break;
     }
 
-    if (current >= min) {
+    if (current >= minProps) {
       break;
     }
 
     if (allowsAdditional) {
-      if (reuseProps && ((propertyKeys.length - current) > min)) {
+      if (reuseProps && ((propertyKeys.length - current) > minProps)) {
         let count = 0;
         let key;
 

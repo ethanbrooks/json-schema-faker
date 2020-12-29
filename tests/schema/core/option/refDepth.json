@@ -6,6 +6,7 @@
         "type": "object",
         "definitions": {
           "aDef": {
+            "additionalProperties": false,
             "properties": {
               "subA": {
                 "items": {
@@ -17,18 +18,24 @@
             "type": "object"
           }
         },
+        "additionalProperties": false,
         "properties": {
           "collection": {
+            "additionalProperties": false,
             "properties": {
               "a": {
                 "$ref": "#/definitions/aDef"
               }
             },
             "type": "object",
-            "required": ["a"]
+            "required": [
+              "a"
+            ]
           }
         },
-        "required": ["collection"]
+        "required": [
+          "collection"
+        ]
       }
     ],
     "tests": [
@@ -67,7 +74,7 @@
           "refDepthMin": 6,
           "refDepthMax": 6
         },
-        "repeat": 10
+        "repeat": 1
       },
       {
         "description": "should handle refDepthMin and refDepthMax options being unequal",
@@ -75,15 +82,7 @@
         "equal": {
           "collection": {
             "a": {
-              "subA": [
-                {
-                  "subA": [
-                    {
-                      "subA": []
-                    }
-                  ]
-                }
-              ]
+              "subA": []
             }
           }
         },
